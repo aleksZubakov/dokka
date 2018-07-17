@@ -39,10 +39,16 @@ class PendingDocumentationReference(val lazyNodeFrom: () -> DocumentationNode?,
 
 class NodeReferenceGraph {
     private val nodeMap = hashMapOf<String, DocumentationNode>()
+    private val expectActualMap = hashMapOf<String, DocumentationNode>()
+
     val references = arrayListOf<PendingDocumentationReference>()
 
     fun register(signature: String, node: DocumentationNode) {
         nodeMap[signature] = node
+    }
+
+    fun registerExpectActual(signature: String, node: DocumentationNode) {
+        expectActualMap[signature] = node
     }
 
     fun link(fromNode: DocumentationNode, toSignature: String, kind: RefKind) {

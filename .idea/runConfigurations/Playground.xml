@@ -2,7 +2,7 @@
   <configuration default="false" name="Playground" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="org.jetbrains.dokka.MainKt" />
     <module name="fatjar_main" />
-    <option name="PROGRAM_PARAMETERS" value="-module playground test -format html -output out/html" />
+    <option name="PROGRAM_PARAMETERS" value="-module playground common::test -format html -output out/html -classpath $USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.2.0-rc-39/e8f6d6d3aed1aba5aadd6a8c5a955369c8ed979f/kotlin-stdlib-common-1.2.0-rc-39.jar" />
     <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
     <method />
   </configuration>

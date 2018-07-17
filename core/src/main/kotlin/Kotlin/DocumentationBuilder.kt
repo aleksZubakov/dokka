@@ -389,7 +389,25 @@ class DocumentationBuilder
     fun DocumentationNode.appendOrUpdateMember(descriptor: DeclarationDescriptor) {
         if (descriptor.isGenerated() || !descriptor.isDocumented(options)) return
 
+
+
         val existingNode = refGraph.lookup(descriptor.signature())
+
+        if (existingNode is ClassDescriptor) {
+        }
+
+        if (existingNode is FunctionDescriptor) {
+
+        }
+
+        if (descriptor is MemberDescriptor) {
+            if (descriptor.isExpect) {
+                val actualExpectNode = descriptor.build()
+                refGraph.registerExpectActual(descriptor.signature(), actualExpectNode)
+            }
+
+        }
+
         if (existingNode != null) {
             if (existingNode.kind == NodeKind.TypeAlias && descriptor is ClassDescriptor
                     || existingNode.kind == NodeKind.Class && descriptor is TypeAliasDescriptor) {
