@@ -2,6 +2,8 @@
 // Console run configuration will analyse it and provide lots of debug output
 package dokka.playground
 
+import java.util.LinkedList
+
 fun topLevelFunction() {
 }
 
@@ -18,8 +20,9 @@ var topLevelVariable: String
 /**
  * This is a class
  */
-class Class {
+class Class(val aaa: LinkedList) {
     fun memberFunction() {
+
     }
 
     val memberValue = "Member"
@@ -91,9 +94,4 @@ class OuterClass {
         protected open fun nestedObjectFunction() {
         }
     }
-}
-
-trait Interface {
-    fun worker()
-    val extra: String
 }

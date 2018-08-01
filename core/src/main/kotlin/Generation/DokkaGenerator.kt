@@ -79,7 +79,7 @@ class DokkaGenerator(val dokkaConfiguration: DokkaConfiguration,
                 DokkaAnalysisModule(environment, dokkaConfiguration, defaultPlatformsProvider, documentationModule.nodeRefGraph, passConfiguration, logger))
 
         buildDocumentationModule(injector, documentationModule, { isNotSample(it, passConfiguration.samples) }, includes)
-        documentationModule.nodeRefGraph.nodeMapView.forEach { (_, node) ->
+        documentationModule.nodeRefGraph.nodeMapView.forEach { (_, node) -> // FIXME: change to full graph visiting
             node.addReferenceTo(
                 DocumentationNode(analysisPlatform.key, Content.Empty, NodeKind.Platform),
                 RefKind.Platform
@@ -98,6 +98,16 @@ class DokkaGenerator(val dokkaConfiguration: DokkaConfiguration,
         environment.apply {
             if (analysisPlatform == Platform.jvm) {
                 addClasspath(PathUtil.getJdkClassesRootsFromCurrentJre())
+            }
+
+            // TODO: Fix concrete path to correct gradle path providing
+            if (analysisPlatform == Platform.js) {
+                addClasspath(File("/home/aleks/.local/share/JetBrains/Toolbox/apps/IDEA-U/ch-0/182.3684.101/plugins/Kotlin/kotlinc/lib/kotlin-jslib.jar"))
+                addClasspath(File("/home/aleks/.local/share/JetBrains/Toolbox/apps/IDEA-U/ch-0/182.3684.101/plugins/Kotlin/kotlinc/lib/kotlin-stdlib-js.jar"))
+                addClasspath(File("/home/aleks/.local/share/JetBrains/Toolbox/apps/IDEA-U/ch-0/182.3684.101/plugins/Kotlin/kotlinc/lib/kotlin-stdlib-js-sources.jar"))
+            }
+            if (analysisPlatform == Platform.common) {
+                addClasspath(File("/home/aleks/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.2.70-dev-235/d8756da16406f9c2a928eee5029cb517ca70bb1c/kotlin-stdlib-common-1.2.70-dev-235.jar"))
             }
             //   addClasspath(PathUtil.getKotlinPathsForCompiler().getRuntimePath())
             for (element in passConfiguration.classpath) {
@@ -228,8 +238,8 @@ class DocumentationMerger(
     init {
         signatureMap = documentationModules
             .flatMap { it.nodeRefGraph.nodeMapView.entries }
-            .map { (k, v) -> v to k }
-            .toMap()
+            .associate { (k, v) -> v to k }
+
 
         producedNodeRefGraph = NodeReferenceGraph()
         documentationModules.map { it.nodeRefGraph }
@@ -237,13 +247,6 @@ class DocumentationMerger(
             .distinct()
             .forEach { producedNodeRefGraph.addReference(it) }
     }
-
-    private fun splitReferencesByKind(
-        source: List<DocumentationReference>,
-        kind: RefKind
-    ): Pair<List<DocumentationReference>, List<DocumentationReference>> =
-        Pair(source.filter { it.kind == kind }, source.filterNot { it.kind == kind })
-
 
     private fun mergePackageReferences(
         from: DocumentationNode,
@@ -253,7 +256,7 @@ class DocumentationMerger(
             .map { it.to }
             .groupBy { it.name }
 
-        val mutableList: MutableList<DocumentationReference> = mutableListOf()
+        val mutableList = mutableListOf<DocumentationReference>()
         for ((name, listOfPackages) in packagesByName) {
             val producedPackage = mergePackagesWithEqualNames(from, listOfPackages)
             updatePendingReferences(name, producedPackage)
@@ -282,6 +285,7 @@ class DocumentationMerger(
         val mergedReferences = mergeReferences(mergedPackage, references)
 
         for (packageNode in packages) {
+            // TODO: Discuss
             mergedPackage.updateContent {
                 for (otherChild in packageNode.content.children) {
                     children.add(otherChild)
@@ -305,7 +309,6 @@ class DocumentationMerger(
         refs: List<DocumentationReference>
     ): List<DocumentationReference> {
         val membersBySignature: Map<String, List<DocumentationNode>> = refs.map { it.to }
-            .filter { signatureMap.containsKey(it) }
             .groupBy { signatureMap[it]!! }
 
         val mergedMembers: MutableList<DocumentationReference> = mutableListOf()
@@ -327,8 +330,8 @@ class DocumentationMerger(
         from: DocumentationNode,
         refs: List<DocumentationNode>
     ): DocumentationNode {
-        if (refs.size == 1) {
-            val singleNode = refs.single()
+        val singleNode = refs.singleOrNull()
+        if (singleNode != null) {
             singleNode.owner?.let { owner ->
                 singleNode.dropReferences { it.to == owner && it.kind == RefKind.Owner }
             }
@@ -354,6 +357,8 @@ class DocumentationMerger(
         from: DocumentationNode,
         refs: List<DocumentationReference>
     ): List<DocumentationReference> {
+
+        // TODO: not all refs are to packages
         val allRefsToPackages = refs.map { it.to }
             .all { it.kind == NodeKind.Package }
 
@@ -361,11 +366,12 @@ class DocumentationMerger(
             return mergePackageReferences(from, refs)
         }
 
-        val (memberRefs, notMemberRefs) = splitReferencesByKind(refs, RefKind.Member)
+        val (memberRefs, notMemberRefs) = refs.partition { it.kind == RefKind.Member }
         val mergedMembers = mergeMembers(from, memberRefs)
 
+        // TODO: think
         return (mergedMembers + notMemberRefs).distinctBy {
-            it.kind to it.to.name
+            it.to.kind to it.to.name
         }
     }
 
@@ -382,21 +388,22 @@ class DocumentationMerger(
 
     private fun NodeResolver.update(signature: String, nodeToUpdate: DocumentationNode) {
         when (this) {
-            is NodeResolver.BySignature -> update(signature, nodeToUpdate)
+            is NodeResolver.BySignature -> {}
             is NodeResolver.Exact -> update(signature, nodeToUpdate)
         }
     }
 
-    private fun NodeResolver.BySignature.update(signature: String, nodeToUpdate: DocumentationNode) {
-        if (signature == nodeToUpdate.name) {
-            nodeMap = producedNodeRefGraph.nodeMapView
-        }
-    }
+//    private fun NodeResolver.BySignature.update(signature: String, nodeToUpdate: DocumentationNode) {
+//        if (signature == nodeToUpdate.name) {
+//            nodeMap = producedNodeRefGraph.nodeMapView
+//        }
+//    }
 
     private fun NodeResolver.Exact.update(signature: String, nodeToUpdate: DocumentationNode) {
         exactNode?.let { it ->
             val equalSignature =
-                it.anyReference { ref -> ref.to.kind == NodeKind.Signature && ref.to.name == signature }
+                it.anyReference { ref -> ref.to.kind == NodeKind.Signature && ref.to.name == signature } // TODO: full map: old ref -> new ref,
+            // TODO: change if old refs equal
 
             if (equalSignature) {
                 exactNode = nodeToUpdate
@@ -405,18 +412,21 @@ class DocumentationMerger(
     }
 
     fun merge(): DocumentationModule {
-        val refs = documentationModules.flatMap {
-            it.allReferences()
-        }
+
+        // todo: all modules with same names assert
         val mergedDocumentationModule = DocumentationModule(
             name = documentationModules.first().name,
             nodeRefGraph = producedNodeRefGraph
         )
 
+        val refs = documentationModules.flatMap {
+            it.allReferences()
+        }
         mergeReferences(mergedDocumentationModule, refs)
 
         return mergedDocumentationModule
     }
-
-
 }
+
+//data class
+// package list provider

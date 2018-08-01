@@ -13,6 +13,13 @@ import kotlin.reflect.KClass
 
 const val impliedPlatformsName = "impliedPlatforms"
 
+class DokkaRunModule(val configuration: DokkaConfiguration) : Module {
+    override fun configure(binder: Binder?) {
+    }
+
+}
+
+
 class DokkaAnalysisModule(val environment: AnalysisEnvironment,
                           val configuration: DokkaConfiguration,
                           val defaultPlatformsProvider: DefaultPlatformsProvider,

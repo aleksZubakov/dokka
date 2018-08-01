@@ -102,12 +102,12 @@ fun appendDocumentation(documentation: DocumentationModule,
             }
             // TODO: Fix concrete path to correct gradle path providing
             if (analysisPlatform == Platform.js) {
-                addClasspath(File("/home/jetbrains/.local/share/JetBrains/Toolbox/apps/IDEA-U/ch-0/181.5281.24/plugins/Kotlin/kotlinc/lib/kotlin-jslib.jar"))
-                addClasspath(File("/home/jetbrains/.local/share/JetBrains/Toolbox/apps/IDEA-U/ch-0/181.5281.24/plugins/Kotlin/kotlinc/lib/kotlin-stdlib-js.jar"))
-                addClasspath(File("/home/jetbrains/.local/share/JetBrains/Toolbox/apps/IDEA-U/ch-0/181.5281.24/plugins/Kotlin/kotlinc/lib/kotlin-stdlib-js-sources.jar"))
-                }
+                addClasspath(File("/home/aleks/.local/share/JetBrains/Toolbox/apps/IDEA-U/ch-0/182.3684.101/plugins/Kotlin/kotlinc/lib/kotlin-jslib.jar"))
+                addClasspath(File("/home/aleks/.local/share/JetBrains/Toolbox/apps/IDEA-U/ch-0/182.3684.101/plugins/Kotlin/kotlinc/lib/kotlin-stdlib-js.jar"))
+                addClasspath(File("/home/aleks/.local/share/JetBrains/Toolbox/apps/IDEA-U/ch-0/182.3684.101/plugins/Kotlin/kotlinc/lib/kotlin-stdlib-js-sources.jar"))
+            }
             if (analysisPlatform == Platform.common) {
-                addClasspath(File("/home/jetbrains/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.2.51/e4a9d4b13ab19ed1e6531fce6df98e8cfa7f7301/kotlin-stdlib-common-1.2.51.jar"))
+                addClasspath(File("/home/aleks/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.2.70-dev-235/d8756da16406f9c2a928eee5029cb517ca70bb1c/kotlin-stdlib-common-1.2.70-dev-235.jar"))
             }
         }
         addRoots(modelConfig.roots.toList())

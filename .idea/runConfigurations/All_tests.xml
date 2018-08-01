@@ -2,6 +2,6 @@
   <configuration default="false" name="All tests" type="CompoundRunConfigurationType" factoryName="Compound Run Configuration">
     <toRun type="GradleRunConfiguration" name="Core tests" />
     <toRun type="GradleRunConfiguration" name="Gradle integration tests" />
-    <method />
+    <method v="2" />
   </configuration>
 </component>
